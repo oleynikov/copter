@@ -40,10 +40,8 @@ void loop()
     */
     //  Output YRP
     //Serial.print(yawPitchRoll[0]);Serial.print("\t");
-    Serial.print("Pitch:\t");
-    Serial.print(yawPitchRoll[1]);Serial.print("\t\t\t");
-    Serial.print("Roll:\t");
-    Serial.print(yawPitchRoll[2]);Serial.print("\t\t\t");
+    Serial.print(yawPitchRoll[1]);Serial.print("\t");
+    Serial.print(yawPitchRoll[2]);Serial.print("\t");
 	
     //	Output current speeds of engines
     Serial.print(copter.getEngine(0)->getSpeed()); Serial.print('\t');
