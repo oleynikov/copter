@@ -63,7 +63,7 @@ void loop()
 	  
       case Copter::ENGINES_ARM:		copter.armAllEngines(); break;
 	  
-      case Copter::COPTER_RAISE:	copter.acelerateAllEngines(); break;
+      case Copter::COPTER_RAISE:	copter.accelerateAllEngines(); break;
 	  
       case Copter::COPTER_DESCEND:	copter.slowAllEngines(); break;
 	  

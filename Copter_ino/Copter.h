@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 enum COPTER_COMMANDS
 {
 
@@ -12,151 +14,128 @@ enum COPTER_COMMANDS
 	COPTER_DESCEND
   
 };
-	
+
 class Engine
 {
 
 	public:
 	
-								Engine ( int pin )
-									:
-										speed	( 0 ),
-										pin		( pin )
-		{
+									Engine ( int pin );
 		
-			this->servo.attach(pin);
-			this->setSpeed(0);
-			
-		}
-		
-		int						getPin ( void ) const
-		{
-		
-			return this->pin;
-		
-		}
+		int							getPin ( void ) const;
 
-		int						getSpeed ( void ) const
-		{
+		int							getSpeed ( void ) const;
 		
-			return this->speed;
+		void						arm ( void );
 		
-		}
+		void						stop ( void );
 		
-		void					arm ( void )
-		{
-		
-			this->setSpeed(Engine::speedArm);
-		
-		}
-		
-		void					stop ( void )
-		{
-		
-			this->setSpeed(0);
-		
-		}
-		
-		void					acelerate ( void )
-		{
-		
-			int speedNew;
-		
-			if ( this->speed == Engine::speedArm )
-			{
-			
-				speedNew = Engine::speedMin;
-				
-			}
-			
-			else
-			{
-			
-				speedNew = this->speed+Engine::speedDelta;
-				
-			}
-		
-			this->setSpeed(speedNew);
-		
-		}
+		bool						accelerate ( void );
 
-		void					slow ( void )
-		{
+		bool						slow ( void );
 		
-			this->setSpeed(this->speed-Engine::speedDelta);
+		const static int			SPEED_ARM = 20;
 		
-		}
+		const static int			SPEED_MIN = 35;
 		
-		const static int		speedArm = 20;
+		const static int			SPEED_MAX = 180;
 		
-		const static int		speedMin = 35;
-		
-		const static int		speedMax = 180;
+		const static int			SPEED_DELTA = 1;
 	
 	private:
 
-		void					setSpeed ( int speed )
-		{
+		bool						setSpeed ( int speed );
 		
-			if ( this->getSpeedValid(speed) )
-			{
-			
-			
-				this->servo.write(speed);
-				this->speed = speed;
-			
-			}
-		
-		}
-		
-		bool					getSpeedValid ( int speed ) const
-		{
-		
-			bool actionArm = this->speed == 0 && speed == Engine::speedArm;
-			bool actionLaunch = this->speed == Engine::speedArm && this->speed < speed;
-			bool actionSpeedChange = speed <= Engine::speedMax && speed >= Engine::speedMin;
-			bool actionStop = speed == 0;
-			
-			return actionArm || actionLaunch || actionSpeedChange || actionStop;
-		
-		}
+		bool						getSpeedValid ( int speed ) const;
 
-		int						pin;
+		int							pin;
 		
-		int						speed;
+		int							speed;
 		
-		Servo					servo;
-		
-		const static int		speedDelta = 1;
+		//Servo						servo;
 		
 };
 
-template <int enginesNumber>
-class Copter
+class ABalancer
 {
 
 	public:
 	
-								Copter ( void )
+									ABalancer ( float* yawPitchRoll );
+	
+		virtual						~ABalancer ( void );
+
+		void						update ( void );
+		
+		bool						getBalanced ( void );
+		
+		virtual bool				getYawBalanced ( void ) const = 0;
+		
+		virtual bool				getPitchBalanced ( void ) const = 0;
+		
+		virtual bool				getRollBalanced ( void ) const = 0;
+		
+		virtual void				balanceYaw ( void ) = 0;
+		
+		virtual void				balancePitch ( void ) = 0;
+		
+		virtual void				balanceRoll ( void ) = 0;
+
+		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
+		
+		const static float			ACCELERATION_ACCURACY = 0.5;
+		
+	protected:
+
+		float*						yawPitchRoll;
+
+		float						acceleration[3];
+
+};
+
+template <int enginesNumber>
+class ACopter
+{
+
+	public:
+	
+									ACopter ( void )
+										:
+											balancer ( 0 )
 		{
 		
-			this->initiateEnginesArray();
+			//	Zero-initiate engines array
+			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+			{
+			
+				this->engines[engineKey] = 0;
+			
+			}
 		
 		}
 
-		virtual					~Copter ( void )
+		virtual						~ACopter ( void )
 		{
 		
+			//	Delete engines
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
 			
 				delete this->engines[engineKey];
 			
 			}
+			
+			//	Delete the balancer
+			if ( this->balancer )
+			{
+			
+				delete this->balancer;
+				
+			}
 		
 		}
 		
-		const Engine*			getEngine ( int engineId ) const
+		Engine*						getEngine ( int engineId ) const
 		{
 		
 			if ( this->getEngineIdValid(engineId) )
@@ -170,10 +149,10 @@ class Copter
 		
 		}
 		
-		void					armAllEngines ( void )
+		void						armAllEngines ( void )
 		{
 		
-			if ( this->getEnginesReady() )
+			if ( this->getReadyToLaunch() )
 			{
 		
 				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
@@ -187,7 +166,7 @@ class Copter
 		
 		}
 	
-		void					stopAllEngines ( void )
+		void						stopAllEngines ( void )
 		{
 		
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
@@ -199,19 +178,19 @@ class Copter
 
 		}
 		
-		void					acelerateAllEngines ( void )
+		void						accelerateAllEngines ( void )
 		{
 		
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
 			
-				this->engines[engineKey]->acelerate();
+				this->engines[engineKey]->accelerate();
 			
 			}
 
 		}
 		
-		void					slowAllEngines ( void )
+		void						slowAllEngines ( void )
 		{
 		
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
@@ -223,32 +202,14 @@ class Copter
 
 		}
 
-	protected:
-	
-		void					addEngine ( int engineId , int enginePin )
-		{
-			
-			this->engines[engineId] = new Engine(enginePin);
-		
-		}
-	
-		virtual void			align ( void ) = 0;
-	
-	private:
-	
-		void					initiateEnginesArray ( void )
+		void						updateTelemetry ( void )
 		{
 		
-			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-			{
-			
-				this->engines[engineKey] = 0;
-			
-			}
+			this->balancer->update();
 		
 		}
-	
-		bool					getEnginesReady ( void ) const
+
+		bool						getEnginesReady ( void ) const
 		{
 		
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
@@ -267,7 +228,58 @@ class Copter
 		
 		}
 	
-		bool					getEngineIdValid ( int engineId ) const
+		bool						getBalancerReady ( void ) const
+		{
+		
+			return this->balancer;
+		
+		}
+	
+		bool						getReadyToLaunch ( void ) const
+		{
+		
+			return
+			(
+				this->getEnginesReady()
+					&&
+				this->getBalancerReady()
+			);
+		
+		}
+		
+		bool						getBalanced ( void ) const
+		{
+		
+			if ( this->balancer )
+			{
+			
+				return this->balancer->getBalanced();
+				
+			}
+			
+			return false;
+		
+		}
+		
+	protected:
+	
+		void						addEngine ( int engineId , int enginePin )
+		{
+			
+			this->engines[engineId] = new Engine(enginePin);
+		
+		}
+	
+		void						addBalancer ( ABalancer* balancer )
+		{
+		
+			this->balancer = balancer;
+		
+		}
+		
+	private:
+	
+		bool						getEngineIdValid ( int engineId ) const
 		{
 		
 			return
@@ -279,42 +291,49 @@ class Copter
 		
 		}
 	
-		bool					getIsAligned ( void ) const
-		{
-		
-			//	Copter is aligned 
-			return true;
-		
-		}
-	
-		Engine*					engines[enginesNumber];
+		Engine*						engines[enginesNumber];
+
+		ABalancer*					balancer;
 
 };
 
-class QuadroCopter
+class QuadroCopter;
+class QuadroBalancer
 	:
-		public Copter<4>
+		public ABalancer
 {
 
 	public:
 	
-		void					createEngines ( const int pin0 , const int pin1, const int pin2, const int pin3 )
-		{
-		
-			this->addEngine(0,pin0);
-			this->addEngine(1,pin1);
-			this->addEngine(2,pin2);
-			this->addEngine(3,pin3);
-
-		}
-		
-	protected:
+									QuadroBalancer ( QuadroCopter* copter , float* yawPitchRoll );
 	
-		virtual void			align ( void )
-		{
+		bool						getYawBalanced ( void ) const;
 		
-			// Align copter
+		bool						getPitchBalanced ( void ) const;
 		
-		}
+		bool						getRollBalanced ( void ) const;
+		
+		void						balanceYaw ( void );
+		
+		void						balancePitch ( void );
+		
+		void						balanceRoll ( void );
+
+	private:
+	
+		QuadroCopter*				copter;
+		
+};
+
+class QuadroCopter
+	:
+		public ACopter<4>
+{
+
+	public:
+	
+		void						createEngines ( const int pin0 , const int pin1, const int pin2, const int pin3 );
+		
+		void						createBalancer ( float* yawPitchRoll );
 		
 };
