@@ -114,7 +114,7 @@ void			accelgyroSetup( void )
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
     //Serial.begin(115200);
-    Serial.begin(38400);
+    Serial.begin(115200);
     while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
     // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3v or Ardunio
@@ -273,7 +273,7 @@ float*			accelgyroGetYawPitchRoll ( void )
 	accelgyro.dmpGetYawPitchRoll(ypr, &q, &gravity);
 	
 	ypr[0] *= 180/M_PI;
-	ypr[1] *= 180/M_PI*-1;
+	ypr[1] *= 180/M_PI;
 	ypr[2] *= 180/M_PI;
   
 	return ypr;

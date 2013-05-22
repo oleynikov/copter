@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 #include <Arduino.h>
-#include <Servo.h>
 #include <Wire.h>
+#include <Servo.h>
 #include "Copter.h"
 #include "MPU6050_API.h"
 
@@ -28,16 +28,15 @@ void loop()
 
   if ( accelgyroUpdate() )
   {
-  
-	//	Update copter's telemetry
-	copter.updateTelemetry();
+    //  Update YPTR data
+    accelgyroGetYawPitchRoll();
+
+    //  Update copter's telemetry
+    copter.updateTelemetry();
 
     //  Output YRP
-    float* yawPitchRoll = accelgyroGetYawPitchRoll();
-    //Serial.print(yawPitchRoll[0]);Serial.print("\t");
-    Serial.print(yawPitchRoll[1]);Serial.print("\t");
-    Serial.print(yawPitchRoll[2]);Serial.print("\t");
-	
+    Serial.print(ypr[1]);Serial.print("\t");
+    Serial.print(ypr[2]);Serial.print("\t\t\t");
     //	Output current speeds of engines
     Serial.print(copter.getEngine(0)->getSpeed()); Serial.print('\t');
     Serial.print(copter.getEngine(1)->getSpeed()); Serial.print('\t');
@@ -49,21 +48,14 @@ void loop()
   //  If a command was recieved over bluetooth
   if ( bluetooth.available() )
   {
-    
-	//  Send it to copter
+    //  Send it to copter
     switch (bluetooth.read())
     {
-	
-      case Copter::ENGINES_STOP:	copter.stopAllEngines(); break;
-	  
-      case Copter::ENGINES_ARM:		copter.armAllEngines(); break;
-	  
-      case Copter::COPTER_RAISE:	copter.accelerateAllEngines(); break;
-	  
-      case Copter::COPTER_DESCEND:	copter.slowAllEngines(); break;
-	  
+      case ENGINES_STOP:	copter.stopAllEngines(); break;
+      case ENGINES_ARM:		copter.armAllEngines(); break;
+      case COPTER_RAISE:	copter.accelerateAllEngines(); break;
+      case COPTER_DESCEND:	copter.slowAllEngines(); break;
     }
-
   }
 
 }

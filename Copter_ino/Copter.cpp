@@ -1,3 +1,4 @@
+
 #include "Copter.h"
 
 
@@ -10,7 +11,7 @@
 				speed	( 0 )
 {
 
-	//this->servo.attach(pin);
+	this->servo.attach(pin);
 	this->setSpeed(0);
 	
 }
@@ -80,7 +81,7 @@ bool	Engine::setSpeed ( int speed )
 	{
 	
 	
-		//this->servo.write(speed);
+		this->servo.write(speed);
 		this->speed = speed;
 		
 		return true;
@@ -202,14 +203,12 @@ void	QuadroBalancer::balancePitch ( void )
 	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
 	//	this->copter->openParaschute()
-	
 }
 
 void	QuadroBalancer::balanceRoll ( void )
 {
-
-	//	Try to slow the engine which is higher
-	int engineHigh = ( this->yawPitchRoll[2] < 0 ) ? 0 : 2;
+  	//	Try to slow the engine which is higher
+	int engineHigh = ( this->yawPitchRoll[2] < 0 ) ? 2 : 0;
 	if ( this->copter->getEngine(engineHigh)->slow() ) return;
 
 	//	Try to accelerate the engine which is lower
@@ -219,7 +218,6 @@ void	QuadroBalancer::balanceRoll ( void )
 	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
 	//	this->copter->openParaschute()
-
 }
 
 

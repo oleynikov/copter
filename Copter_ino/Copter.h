@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <Servo.h>
 
 enum COPTER_COMMANDS
 {
@@ -38,7 +39,7 @@ class Engine
 		
 		const static int			SPEED_MIN = 35;
 		
-		const static int			SPEED_MAX = 180;
+		const static int			SPEED_MAX = 60;
 		
 		const static int			SPEED_DELTA = 1;
 	
@@ -52,7 +53,7 @@ class Engine
 		
 		int							speed;
 		
-		//Servo						servo;
+		Servo						servo;
 		
 };
 
@@ -101,7 +102,8 @@ class ACopter
 	
 									ACopter ( void )
 										:
-											balancer ( 0 )
+											balancer ( 0 ),
+											running  ( false )
 		{
 		
 			//	Zero-initiate engines array
@@ -205,6 +207,20 @@ class ACopter
 		void						updateTelemetry ( void )
 		{
 		
+			if
+			(
+			  this->getEngine(0)->getSpeed() <= Engine::SPEED_MIN
+				&& 
+			  this->getEngine(1)->getSpeed() <= Engine::SPEED_MIN
+				&& 
+			  this->getEngine(2)->getSpeed() <= Engine::SPEED_MIN
+				&& 
+			  this->getEngine(3)->getSpeed() <= Engine::SPEED_MIN
+			 )
+			 {
+			  return; 
+			 }
+		
 			this->balancer->update();
 		
 		}
@@ -290,6 +306,8 @@ class ACopter
 			);
 		
 		}
+	
+		bool						running;
 	
 		Engine*						engines[enginesNumber];
 
