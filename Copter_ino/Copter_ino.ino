@@ -6,7 +6,7 @@
 #include "MPU6050_API.h"
 
 SoftwareSerial          bluetooth(10,11);
-Copter::QuadroCopter    copter;
+QuadroCopter            copter;
 
 void setup()
 {
