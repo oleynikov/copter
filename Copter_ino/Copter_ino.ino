@@ -19,6 +19,7 @@ void setup()
 
   //  Bind pins to copter engines
   copter.createEngines(3,5,6,9);
+  copter.createBalancer(ypr);
   
 }
 
@@ -28,17 +29,11 @@ void loop()
   if ( accelgyroUpdate() )
   {
   
-    VectorInt16*  aceleration = accelgyroGetAceleration();
-    float*        yawPitchRoll = accelgyroGetYawPitchRoll();
-  
-    //  Output aceleration
-    /*
-    Serial.print("Aceleration:\t");
-    Serial.print(aceleration->x);Serial.print("\t");
-    Serial.print(aceleration->y);Serial.print("\t");
-    Serial.print(aceleration->z);Serial.print("\t");
-    */
+	//	Update copter's telemetry
+	copter.updateTelemetry();
+
     //  Output YRP
+    float* yawPitchRoll = accelgyroGetYawPitchRoll();
     //Serial.print(yawPitchRoll[0]);Serial.print("\t");
     Serial.print(yawPitchRoll[1]);Serial.print("\t");
     Serial.print(yawPitchRoll[2]);Serial.print("\t");

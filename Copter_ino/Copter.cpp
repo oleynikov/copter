@@ -191,17 +191,15 @@ void	QuadroBalancer::balanceYaw ( void )
 void	QuadroBalancer::balancePitch ( void )
 {
 
-	//	Find out which engine is lower
-	int engineLow = ( this->yawPitchRoll[1] < 0 ) ? 1 : 3;
-	
-	//	Try to accelerate it
-	if ( this->copter->getEngine(engineLow)->accelerate() ) return;
-	
-	//	If lower engine works @ maximum speed, try to slow higher engine
+	//	Try to slow the engine which is higher
 	int engineHigh = ( this->yawPitchRoll[1] < 0 ) ? 3 : 1;
 	if ( this->copter->getEngine(engineHigh)->slow() ) return;
+
+	//	Try to accelerate the engine which is lower
+	int engineLow = ( this->yawPitchRoll[1] < 0 ) ? 1 : 3;
+	if ( this->copter->getEngine(engineLow)->accelerate() ) return;
 	
-	//	If higher engine already works @ minimum speed, that is really bad...
+	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
 	//	this->copter->openParaschute()
 	
@@ -210,17 +208,15 @@ void	QuadroBalancer::balancePitch ( void )
 void	QuadroBalancer::balanceRoll ( void )
 {
 
-	//	Find out which engine is lower
-	int engineLow = ( this->yawPitchRoll[1] < 0 ) ? 0 : 2;
-	
-	//	Try to accelerate it
+	//	Try to slow the engine which is higher
+	int engineHigh = ( this->yawPitchRoll[2] < 0 ) ? 0 : 2;
+	if ( this->copter->getEngine(engineHigh)->slow() ) return;
+
+	//	Try to accelerate the engine which is lower
+	int engineLow = ( this->yawPitchRoll[2] < 0 ) ? 0 : 2;
 	if ( this->copter->getEngine(engineLow)->accelerate() ) return;
 	
-	//	If lower engine works @ maximum speed, try to slow higher engine
-	int engineHigh = ( this->yawPitchRoll[1] < 0 ) ? 0 : 2;
-	if ( this->copter->getEngine(engineHigh)->slow() ) return;
-	
-	//	If higher engine already works @ minimum speed, that is really bad...
+	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
 	//	this->copter->openParaschute()
 
