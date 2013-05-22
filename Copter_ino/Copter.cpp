@@ -4,10 +4,10 @@
 
 //	Engine
 	
-						Engine::Engine ( int pin )
-							:
-								pin		( pin ),
-								speed	( 0 )
+		Engine::Engine ( int pin )
+			:
+				pin		( pin ),
+				speed	( 0 )
 {
 
 	//this->servo.attach(pin);
@@ -15,35 +15,35 @@
 	
 }
 
-int						Engine::getPin ( void ) const
+int		Engine::getPin ( void ) const
 {
 
 	return this->pin;
 
 }
 
-int						Engine::getSpeed ( void ) const
+int		Engine::getSpeed ( void ) const
 {
 
 	return this->speed;
 
 }
 
-void					Engine::arm ( void )
+void	Engine::arm ( void )
 {
 
 	this->setSpeed(Engine::SPEED_ARM);
 	
 }
 
-void					Engine::stop ( void )
+void	Engine::stop ( void )
 {
 
 	this->setSpeed(0);
 
 }
 
-bool					Engine::accelerate ( void )
+bool	Engine::accelerate ( void )
 {
 
 	int speedNew;
@@ -66,14 +66,14 @@ bool					Engine::accelerate ( void )
 
 }
 
-bool					Engine::slow ( void )
+bool	Engine::slow ( void )
 {
 
 	return this->setSpeed(this->speed-Engine::SPEED_DELTA);
 
 }
 
-bool					Engine::setSpeed ( int speed )
+bool	Engine::setSpeed ( int speed )
 {
 
 	if ( this->getSpeedValid(speed) )
@@ -91,7 +91,7 @@ bool					Engine::setSpeed ( int speed )
 
 }
 
-bool					Engine::getSpeedValid ( int speed ) const
+bool	Engine::getSpeedValid ( int speed ) const
 {
 
 	bool actionArm = this->speed == 0 && speed == Engine::SPEED_ARM;
@@ -108,19 +108,19 @@ bool					Engine::getSpeedValid ( int speed ) const
 
 //	ABalancer
 
-						ABalancer::ABalancer ( float* yawPitchRoll )
-							:
-								yawPitchRoll(yawPitchRoll)
+		ABalancer::ABalancer ( float* yawPitchRoll )
+			:
+				yawPitchRoll(yawPitchRoll)
 {
 
 }
 
-						ABalancer::~ABalancer ( void )
+		ABalancer::~ABalancer ( void )
 {
 
 }
 
-void					ABalancer::update ( void )
+void	ABalancer::update ( void )
 {
 
 	if ( ! this->getYawBalanced() )
@@ -134,7 +134,7 @@ void					ABalancer::update ( void )
 
 }
 
-bool					ABalancer::getBalanced ( void )
+bool	ABalancer::getBalanced ( void )
 {
 
 	return
@@ -152,43 +152,43 @@ bool					ABalancer::getBalanced ( void )
 
 //	QuadroBalancer
 	
-						QuadroBalancer::QuadroBalancer ( QuadroCopter* copter , float* yawPitchRoll )
-							:
-								ABalancer	( yawPitchRoll ),
-								copter		( copter )
+		QuadroBalancer::QuadroBalancer ( QuadroCopter* copter , float* yawPitchRoll )
+			:
+				ABalancer	( yawPitchRoll ),
+				copter		( copter )
 {
 
 }
 
-bool					QuadroBalancer::getYawBalanced ( void ) const
+bool	QuadroBalancer::getYawBalanced ( void ) const
 {
 
 	return true;
 
 }
 
-bool					QuadroBalancer::getPitchBalanced ( void ) const
+bool	QuadroBalancer::getPitchBalanced ( void ) const
 {
 
 	return fabs(this->yawPitchRoll[1]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
 
 }
 
-bool					QuadroBalancer::getRollBalanced ( void ) const
+bool	QuadroBalancer::getRollBalanced ( void ) const
 {
 
 	return fabs(this->yawPitchRoll[2]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
 
 }
 
-void					QuadroBalancer::balanceYaw ( void )
+void	QuadroBalancer::balanceYaw ( void )
 {
 
 	return;
 
 }
 
-void					QuadroBalancer::balancePitch ( void )
+void	QuadroBalancer::balancePitch ( void )
 {
 
 	//	Find out which engine is lower
@@ -207,7 +207,7 @@ void					QuadroBalancer::balancePitch ( void )
 	
 }
 
-void					QuadroBalancer::balanceRoll ( void )
+void	QuadroBalancer::balanceRoll ( void )
 {
 
 	//	Find out which engine is lower
@@ -230,7 +230,7 @@ void					QuadroBalancer::balanceRoll ( void )
 
 //	QuadroCopter
 
-void					QuadroCopter::createEngines ( const int pin0 , const int pin1, const int pin2, const int pin3 )
+void	QuadroCopter::createEngines ( const int pin0 , const int pin1, const int pin2, const int pin3 )
 {
 
 	//	Add four engines
@@ -241,7 +241,7 @@ void					QuadroCopter::createEngines ( const int pin0 , const int pin1, const in
 	
 }
 
-void					QuadroCopter::createBalancer ( float* yawPitchRoll )
+void	QuadroCopter::createBalancer ( float* yawPitchRoll )
 {
 
 	ABalancer* balancer = new QuadroBalancer(this,yawPitchRoll);

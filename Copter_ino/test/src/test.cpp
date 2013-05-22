@@ -125,6 +125,52 @@ bool test_QuadroCopterSpeedChange_001 ( void )
 
 }
 
+bool test_QuadroCopterSpeedChange_002 ( void )
+{
+
+	float ypr[3] = { 0.49 , 0.51 , 0.49 };
+
+	QuadroCopter copter;
+	copter.createEngines(5,7,9,11);
+	copter.createBalancer(ypr);
+	copter.armAllEngines();
+	copter.accelerateAllEngines();
+	copter.accelerateAllEngines();
+	copter.slowAllEngines();
+	copter.slowAllEngines();
+	copter.slowAllEngines();
+	copter.slowAllEngines();
+	copter.slowAllEngines();
+
+	return
+	(
+		copter.getEngine(0)->getPin() == 5
+			&&
+		copter.getEngine(1)->getPin() == 7
+			&&
+		copter.getEngine(2)->getPin() == 9
+			&&
+		copter.getEngine(3)->getPin() == 11
+			&&
+		copter.getEnginesReady() == 1
+			&&
+		copter.getBalancerReady() == 1
+			&&
+		copter.getReadyToLaunch() == 1
+			&&
+		copter.getBalanced() == 0
+			&&
+		copter.getEngine(0)->getSpeed() == Engine::SPEED_MIN
+			&&
+		copter.getEngine(1)->getSpeed() == Engine::SPEED_MIN
+			&&
+		copter.getEngine(2)->getSpeed() == Engine::SPEED_MIN
+			&&
+		copter.getEngine(3)->getSpeed() == Engine::SPEED_MIN
+	);
+
+}
+
 
 
 int main ( void )
@@ -134,6 +180,7 @@ int main ( void )
 	std::cout << ( test_QuadroCopterConstructor_001() 							? "SUCCESS" : "FAIL" ) << std::endl;
 	std::cout << ( test_QuadroCopterConstructor_002() 							? "SUCCESS" : "FAIL" ) << std::endl;
 	std::cout << ( test_QuadroCopterSpeedChange_001() 							? "SUCCESS" : "FAIL" ) << std::endl;
+	std::cout << ( test_QuadroCopterSpeedChange_002() 							? "SUCCESS" : "FAIL" ) << std::endl;
 
 	return 0;
 
