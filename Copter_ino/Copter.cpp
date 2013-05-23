@@ -11,7 +11,7 @@
 				speed	( 0 )
 {
 
-	this->servo.attach(pin);
+	//this->servo.attach(pin);
 	this->setSpeed(0);
 	
 }
@@ -81,7 +81,7 @@ bool	Engine::setSpeed ( int speed )
 	{
 	
 	
-		this->servo.write(speed);
+		//this->servo.write(speed);
 		this->speed = speed;
 		
 		return true;
@@ -149,6 +149,62 @@ bool	ABalancer::getBalanced ( void )
 
 }
 
+bool	ABalancer::getSteady ( void )
+{
+
+	return
+	(
+		this->getSteadyX()
+			&&
+		this->getSteadyY()
+			&&
+		this->getSteadyZ()
+	);
+
+}
+
+bool	ABalancer::getYawBalanced ( void ) const
+{
+
+	return 1;
+
+}
+
+bool	ABalancer::getPitchBalanced ( void ) const
+{
+
+	return fabs(this->yawPitchRoll[1]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
+
+}
+
+bool	ABalancer::getRollBalanced ( void ) const
+{
+
+	return fabs(this->yawPitchRoll[2]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
+
+}
+
+bool	ABalancer::getSteadyX ( void ) const
+{
+
+	return fabs(this->acceleration[0]) < ABalancer::ACCELERATION_ACCURACY;
+
+}
+
+bool	ABalancer::getSteadyY ( void ) const
+{
+
+	return fabs(this->acceleration[1]) < ABalancer::ACCELERATION_ACCURACY;
+
+}
+
+bool	ABalancer::getSteadyZ ( void ) const
+{
+
+	return fabs(this->acceleration[2]) < ABalancer::ACCELERATION_ACCURACY;
+
+}
+
 
 
 //	QuadroBalancer
@@ -158,27 +214,6 @@ bool	ABalancer::getBalanced ( void )
 				ABalancer	( yawPitchRoll ),
 				copter		( copter )
 {
-
-}
-
-bool	QuadroBalancer::getYawBalanced ( void ) const
-{
-
-	return true;
-
-}
-
-bool	QuadroBalancer::getPitchBalanced ( void ) const
-{
-
-	return fabs(this->yawPitchRoll[1]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
-
-}
-
-bool	QuadroBalancer::getRollBalanced ( void ) const
-{
-
-	return fabs(this->yawPitchRoll[2]) < ABalancer::YAW_PITCH_ROLL_ACCURACY;
 
 }
 
@@ -218,6 +253,27 @@ void	QuadroBalancer::balanceRoll ( void )
 	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
 	//	this->copter->openParaschute()
+}
+
+void	QuadroBalancer::stopX ( void )
+{
+
+	//	Sorry, can't yet
+
+}
+
+void	QuadroBalancer::stopY ( void )
+{
+
+	//	Sorry, can't yet
+
+}
+
+void	QuadroBalancer::stopZ ( void )
+{
+
+	//	Sorry, can't yet
+
 }
 
 

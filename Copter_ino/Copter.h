@@ -1,19 +1,30 @@
 #pragma once
 
 #include <math.h>
-#include <Servo.h>
+//!#include <Servo.h>
 
-enum COPTER_COMMANDS
+enum CopterCommand
 {
 
-	ENGINES_STOP = 48,
+	COPTER_STOP = 48,
   
-	ENGINES_ARM,
-  
+	COPTER_ARM,
+	
 	COPTER_RAISE,
   
 	COPTER_DESCEND
   
+};
+
+enum CopterStatus
+{
+
+	COPTER_STOPPED = 0,
+	
+	COPTER_ARMED,
+	
+	COPTER_RUNNING
+
 };
 
 class Engine
@@ -53,7 +64,7 @@ class Engine
 		
 		int							speed;
 		
-		Servo						servo;
+		//!Servo						servo;
 		
 };
 
@@ -67,30 +78,44 @@ class ABalancer
 		virtual						~ABalancer ( void );
 
 		void						update ( void );
+
+		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
 		
+		const static float			ACCELERATION_ACCURACY = 0.5;
+	
 		bool						getBalanced ( void );
 		
-		virtual bool				getYawBalanced ( void ) const = 0;
+		bool						getSteady ( void );
 		
-		virtual bool				getPitchBalanced ( void ) const = 0;
+	protected:
+
+		bool						getYawBalanced ( void ) const;
 		
-		virtual bool				getRollBalanced ( void ) const = 0;
+		bool						getPitchBalanced ( void ) const;
 		
+		bool						getRollBalanced ( void ) const;
+		
+		bool						getSteadyX ( void ) const;
+
+		bool						getSteadyY ( void ) const;
+
+		bool						getSteadyZ ( void ) const;
+
 		virtual void				balanceYaw ( void ) = 0;
 		
 		virtual void				balancePitch ( void ) = 0;
 		
 		virtual void				balanceRoll ( void ) = 0;
-
-		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
 		
-		const static float			ACCELERATION_ACCURACY = 0.5;
-		
-	protected:
+		virtual void				stopX ( void ) = 0;
 
+		virtual void				stopY ( void ) = 0;
+
+		virtual void				stopZ ( void ) = 0;
+	
 		float*						yawPitchRoll;
-
-		float						acceleration[3];
+		
+		float*						acceleration;
 
 };
 
@@ -102,8 +127,8 @@ class ACopter
 	
 									ACopter ( void )
 										:
-											balancer ( 0 ),
-											running  ( false )
+											status		( COPTER_STOPPED ),
+											balancer	( 0 )
 		{
 		
 			//	Zero-initiate engines array
@@ -137,6 +162,98 @@ class ACopter
 		
 		}
 		
+		void						cmdStop ( void )
+		{
+		
+			if ( this->status != COPTER_STOPPED )
+			{
+		
+				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+				{
+				
+					this->engines[engineKey]->stop();
+				
+				}
+				
+				this->status = COPTER_STOPPED;
+				
+			}
+		
+		}
+		
+		void						cmdArm ( void )
+		{
+		
+			if ( this->status != COPTER_ARMED )
+			{
+			
+				if ( this->getReadyToLaunch() )
+				{
+		
+					for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+					{
+					
+						this->engines[engineKey]->arm();
+					
+					}
+					
+					//!delay(1000);
+					
+					for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+					{
+					
+						this->engines[engineKey]->accelerate();
+					
+					}
+					
+				}
+				
+				this->status = COPTER_ARMED;
+				
+			}
+		
+		}
+		
+		void						cmdRaise ( void )
+		{
+		
+			if
+			(
+				this->status == COPTER_ARMED
+					||
+				this->status == COPTER_RUNNING
+			)
+			{
+			
+				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+				{
+				
+					this->engines[engineKey]->accelerate();
+				
+				}
+			
+			}
+		
+		}
+		
+		void						cmdDescend ( void )
+		{
+		
+			if ( this->status == COPTER_RUNNING )
+			{
+		
+				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
+				{
+				
+					this->engines[engineKey]->slow();
+				
+				}
+				
+			}
+		
+		}
+		
+		
 		Engine*						getEngine ( int engineId ) const
 		{
 		
@@ -151,59 +268,6 @@ class ACopter
 		
 		}
 		
-		void						armAllEngines ( void )
-		{
-		
-			if ( this->getReadyToLaunch() )
-			{
-		
-				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-				{
-				
-					this->engines[engineKey]->arm();
-				
-				}
-				
-			}
-		
-		}
-	
-		void						stopAllEngines ( void )
-		{
-		
-			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-			{
-			
-				this->engines[engineKey]->stop();
-			
-			}
-
-		}
-		
-		void						accelerateAllEngines ( void )
-		{
-		
-			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-			{
-			
-				this->engines[engineKey]->accelerate();
-			
-			}
-
-		}
-		
-		void						slowAllEngines ( void )
-		{
-		
-			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-			{
-			
-				this->engines[engineKey]->slow();
-			
-			}
-
-		}
-
 		void						updateTelemetry ( void )
 		{
 		
@@ -227,7 +291,7 @@ class ACopter
 
 		bool						getEnginesReady ( void ) const
 		{
-		
+	
 			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
 			
@@ -256,9 +320,13 @@ class ACopter
 		
 			return
 			(
-				this->getEnginesReady()
-					&&
-				this->getBalancerReady()
+				this->status != COPTER_STOPPED
+					||
+				(
+					this->getEnginesReady()
+						&&
+					this->getBalancerReady()
+				)
 			);
 		
 		}
@@ -294,7 +362,7 @@ class ACopter
 		}
 		
 	private:
-	
+		
 		bool						getEngineIdValid ( int engineId ) const
 		{
 		
@@ -306,10 +374,10 @@ class ACopter
 			);
 		
 		}
-	
-		bool						running;
-	
+
 		Engine*						engines[enginesNumber];
+
+		CopterStatus				status;				
 
 		ABalancer*					balancer;
 
@@ -336,7 +404,13 @@ class QuadroBalancer
 		void						balancePitch ( void );
 		
 		void						balanceRoll ( void );
+		
+		void						stopX ( void );
 
+		void						stopY ( void );
+
+		void						stopZ ( void );
+		
 	private:
 	
 		QuadroCopter*				copter;

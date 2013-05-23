@@ -89,12 +89,12 @@ bool test_QuadroCopterSpeedChange_001 ( void )
 	QuadroCopter copter;
 	copter.createEngines(5,7,9,11);
 	copter.createBalancer(ypr);
-	copter.armAllEngines();
-	copter.accelerateAllEngines();
-	copter.accelerateAllEngines();
-	copter.accelerateAllEngines();
-	copter.accelerateAllEngines();
-	copter.accelerateAllEngines();
+	copter.cmdArm();
+	copter.cmdRaise();
+	copter.cmdRaise();
+	copter.cmdRaise();
+	copter.cmdRaise();
+	copter.cmdRaise();
 
 	return
 	(
@@ -133,14 +133,14 @@ bool test_QuadroCopterSpeedChange_002 ( void )
 	QuadroCopter copter;
 	copter.createEngines(5,7,9,11);
 	copter.createBalancer(ypr);
-	copter.armAllEngines();
-	copter.accelerateAllEngines();
-	copter.accelerateAllEngines();
-	copter.slowAllEngines();
-	copter.slowAllEngines();
-	copter.slowAllEngines();
-	copter.slowAllEngines();
-	copter.slowAllEngines();
+	copter.cmdArm();
+	copter.cmdRaise();
+	copter.cmdRaise();
+	copter.cmdDescend();
+	copter.cmdDescend();
+	copter.cmdDescend();
+	copter.cmdDescend();
+	copter.cmdDescend();
 
 	return
 	(

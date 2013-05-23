@@ -51,10 +51,10 @@ void loop()
     //  Send it to copter
     switch (bluetooth.read())
     {
-      case ENGINES_STOP:	copter.stopAllEngines(); break;
-      case ENGINES_ARM:		copter.armAllEngines(); break;
-      case COPTER_RAISE:	copter.accelerateAllEngines(); break;
-      case COPTER_DESCEND:	copter.slowAllEngines(); break;
+      case COPTER_STOP:		copter.cmdStop(); break;
+      case COPTER_ARM:		copter.cmdArm(); break;
+      case COPTER_RAISE:	copter.cmdRaise(); break;
+      case COPTER_DESCEND:	copter.cmdDescend(); break;
     }
   }
 
