@@ -5,46 +5,55 @@
 
 //	Engine
 	
-		Engine::Engine ( int pin )
-			:
-				pin		( pin ),
-				speed	( 0 )
+				Engine::Engine ( int pin )
+					:
+						pin		( pin ),
+						speed	( 0 ),
+						status	( ENGINE_STATUS_STOPPED )
 {
 
-	//this->servo.attach(pin);
+	this->servo.attach(pin);
 	this->setSpeed(0);
 	
 }
 
-int		Engine::getPin ( void ) const
+int				Engine::getPin ( void ) const
 {
 
 	return this->pin;
 
 }
 
-int		Engine::getSpeed ( void ) const
+int				Engine::getSpeed ( void ) const
 {
 
 	return this->speed;
 
 }
 
-void	Engine::arm ( void )
+EngineStatus	Engine::getStatus ( void ) const
 {
 
-	this->setSpeed(Engine::SPEED_ARM);
+	return this->status;
+
+}
+
+bool			Engine::arm ( void )
+{
+
+	return this->setSpeed(Engine::SPEED_ARM);
 	
 }
 
-void	Engine::stop ( void )
+void			Engine::stop ( void )
 {
 
 	this->setSpeed(0);
+	this->status = ENGINE_STATUS_STOPPED;
 
 }
 
-bool	Engine::accelerate ( void )
+bool			Engine::accelerate ( void )
 {
 
 	int speedNew;
@@ -53,6 +62,7 @@ bool	Engine::accelerate ( void )
 	{
 	
 		speedNew = Engine::SPEED_MIN;
+		this->status = ENGINE_STATUS_RUNNING;
 		
 	}
 	
@@ -67,21 +77,20 @@ bool	Engine::accelerate ( void )
 
 }
 
-bool	Engine::slow ( void )
+bool			Engine::slow ( void )
 {
 
 	return this->setSpeed(this->speed-Engine::SPEED_DELTA);
 
 }
 
-bool	Engine::setSpeed ( int speed )
+bool			Engine::setSpeed ( int speed )
 {
 
 	if ( this->getSpeedValid(speed) )
 	{
 	
-	
-		//this->servo.write(speed);
+		this->servo.write(speed);
 		this->speed = speed;
 		
 		return true;
@@ -92,26 +101,35 @@ bool	Engine::setSpeed ( int speed )
 
 }
 
-bool	Engine::getSpeedValid ( int speed ) const
+bool			Engine::getSpeedValid ( int speed ) const
 {
 
-	bool actionArm = this->speed == 0 && speed == Engine::SPEED_ARM;
-	bool actionLaunch = this->speed == Engine::SPEED_ARM && this->speed < speed;
-	bool actionSpeedChange = speed <= Engine::SPEED_MAX && speed >= Engine::SPEED_MIN;
-	bool actionStop = speed == 0;
+	bool stopEngine = speed == 0;
+	bool armStoppedEngine = this->speed == 0 && speed == SPEED_ARM;
+	bool launchArmedEngine = this->speed == SPEED_ARM && speed == SPEED_ARM + SPEED_DELTA;
+	bool changeEngineSpeed = speed >= SPEED_MIN && speed <= Engine::SPEED_MAX;
 	
-	return actionArm || actionLaunch || actionSpeedChange || actionStop;
+	return
+	(
+		stopEngine
+			||
+		armStoppedEngine
+			||
+		launchArmedEngine
+			||
+		changeEngineSpeed
+	);
 
 }
 
 
 
-
 //	ABalancer
 
-		ABalancer::ABalancer ( float* yawPitchRoll )
-			:
-				yawPitchRoll(yawPitchRoll)
+				ABalancer::ABalancer ( float* yawPitchRoll )
+					:
+						enabled			( false ),
+						yawPitchRoll	( yawPitchRoll )
 {
 
 }
@@ -121,8 +139,18 @@ bool	Engine::getSpeedValid ( int speed ) const
 
 }
 
+void	ABalancer::toggleEnabled ( void )
+{
+
+	this->enabled = ! this->enabled;
+
+}
+
 void	ABalancer::update ( void )
 {
+
+	if ( ! this->enabled )
+		return;
 
 	if ( ! this->getYawBalanced() )
 		this->balanceYaw();
@@ -229,11 +257,11 @@ void	QuadroBalancer::balancePitch ( void )
 
 	//	Try to slow the engine which is higher
 	int engineHigh = ( this->yawPitchRoll[1] < 0 ) ? 3 : 1;
-	if ( this->copter->getEngine(engineHigh)->slow() ) return;
+	this->copter->getEngine(engineHigh)->slow();
 
 	//	Try to accelerate the engine which is lower
 	int engineLow = ( this->yawPitchRoll[1] < 0 ) ? 1 : 3;
-	if ( this->copter->getEngine(engineLow)->accelerate() ) return;
+        this->copter->getEngine(engineLow)->accelerate();
 	
 	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()
@@ -244,11 +272,11 @@ void	QuadroBalancer::balanceRoll ( void )
 {
   	//	Try to slow the engine which is higher
 	int engineHigh = ( this->yawPitchRoll[2] < 0 ) ? 2 : 0;
-	if ( this->copter->getEngine(engineHigh)->slow() ) return;
+	this->copter->getEngine(engineHigh)->slow();
 
 	//	Try to accelerate the engine which is lower
 	int engineLow = ( this->yawPitchRoll[2] < 0 ) ? 0 : 2;
-	if ( this->copter->getEngine(engineLow)->accelerate() ) return;
+	this->copter->getEngine(engineLow)->accelerate();
 	
 	//	If lower engine works @ maximum speed, that is really bad...
 	//	this->copter->stopAllEngines()

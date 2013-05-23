@@ -1,29 +1,17 @@
 #pragma once
 
 #include <math.h>
-//!#include <Servo.h>
+#include <Servo.h>
+#include <Arduino.h>
 
-enum CopterCommand
+
+
+enum EngineStatus
 {
 
-	COPTER_STOP = 48,
-  
-	COPTER_ARM,
+	ENGINE_STATUS_STOPPED,
 	
-	COPTER_RAISE,
-  
-	COPTER_DESCEND
-  
-};
-
-enum CopterStatus
-{
-
-	COPTER_STOPPED = 0,
-	
-	COPTER_ARMED,
-	
-	COPTER_RUNNING
+	ENGINE_STATUS_RUNNING
 
 };
 
@@ -38,7 +26,9 @@ class Engine
 
 		int							getSpeed ( void ) const;
 		
-		void						arm ( void );
+		EngineStatus				getStatus ( void ) const;
+		
+		bool						arm ( void );
 		
 		void						stop ( void );
 		
@@ -50,9 +40,9 @@ class Engine
 		
 		const static int			SPEED_MIN = 35;
 		
-		const static int			SPEED_MAX = 60;
+		const static int			SPEED_MAX = 50;
 		
-		const static int			SPEED_DELTA = 1;
+		const static int			SPEED_DELTA = 5;
 	
 	private:
 
@@ -64,7 +54,9 @@ class Engine
 		
 		int							speed;
 		
-		//!Servo						servo;
+		EngineStatus				status;
+		
+		Servo						servo;
 		
 };
 
@@ -76,6 +68,8 @@ class ABalancer
 									ABalancer ( float* yawPitchRoll );
 	
 		virtual						~ABalancer ( void );
+		
+		void						toggleEnabled ( void );
 
 		void						update ( void );
 
@@ -112,11 +106,28 @@ class ABalancer
 		virtual void				stopY ( void ) = 0;
 
 		virtual void				stopZ ( void ) = 0;
+		
+		bool						enabled;
 	
 		float*						yawPitchRoll;
 		
 		float*						acceleration;
 
+};
+
+enum CopterCommand
+{
+
+	COPTER_STOP = 48,
+  
+	COPTER_LAUNCH,
+	
+	COPTER_RAISE,
+  
+	COPTER_DESCEND,
+	
+	BALANCER_TOGGLE_ENABLED
+  
 };
 
 template <int enginesNumber>
@@ -127,7 +138,6 @@ class ACopter
 	
 									ACopter ( void )
 										:
-											status		( COPTER_STOPPED ),
 											balancer	( 0 )
 		{
 		
@@ -165,50 +175,36 @@ class ACopter
 		void						cmdStop ( void )
 		{
 		
-			if ( this->status != COPTER_STOPPED )
+			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
+			
+				this->engines[engineKey]->stop();
+			
+			}
+			
+		}
 		
+		void						cmdLaunch ( void )
+		{
+			
+			if ( this->getReadyToLaunch() )
+			{
+	
 				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 				{
 				
-					this->engines[engineKey]->stop();
+					this->engines[engineKey]->arm();
 				
 				}
 				
-				this->status = COPTER_STOPPED;
+				delay(3000);
 				
-			}
-		
-		}
-		
-		void						cmdArm ( void )
-		{
-		
-			if ( this->status != COPTER_ARMED )
-			{
-			
-				if ( this->getReadyToLaunch() )
+				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 				{
-		
-					for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-					{
-					
-						this->engines[engineKey]->arm();
-					
-					}
-					
-					//!delay(1000);
-					
-					for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-					{
-					
-						this->engines[engineKey]->accelerate();
-					
-					}
-					
-				}
 				
-				this->status = COPTER_ARMED;
+					this->engines[engineKey]->accelerate();
+				
+				}
 				
 			}
 		
@@ -217,20 +213,10 @@ class ACopter
 		void						cmdRaise ( void )
 		{
 		
-			if
-			(
-				this->status == COPTER_ARMED
-					||
-				this->status == COPTER_RUNNING
-			)
+			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
 			
-				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-				{
-				
-					this->engines[engineKey]->accelerate();
-				
-				}
+				this->engines[engineKey]->accelerate();
 			
 			}
 		
@@ -239,20 +225,21 @@ class ACopter
 		void						cmdDescend ( void )
 		{
 		
-			if ( this->status == COPTER_RUNNING )
+			for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
 			{
-		
-				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-				{
-				
-					this->engines[engineKey]->slow();
-				
-				}
-				
+			
+				this->engines[engineKey]->slow();
+			
 			}
 		
 		}
 		
+		void						cmdBalancerToggleEnabled ( void )
+		{
+		
+			this->balancer->toggleEnabled();
+		
+		}
 		
 		Engine*						getEngine ( int engineId ) const
 		{
@@ -270,20 +257,6 @@ class ACopter
 		
 		void						updateTelemetry ( void )
 		{
-		
-			if
-			(
-			  this->getEngine(0)->getSpeed() <= Engine::SPEED_MIN
-				&& 
-			  this->getEngine(1)->getSpeed() <= Engine::SPEED_MIN
-				&& 
-			  this->getEngine(2)->getSpeed() <= Engine::SPEED_MIN
-				&& 
-			  this->getEngine(3)->getSpeed() <= Engine::SPEED_MIN
-			 )
-			 {
-			  return; 
-			 }
 		
 			this->balancer->update();
 		
@@ -320,13 +293,18 @@ class ACopter
 		
 			return
 			(
-				this->status != COPTER_STOPPED
-					||
-				(
-					this->getEnginesReady()
-						&&
-					this->getBalancerReady()
-				)
+				this->getEngine(0)->getStatus() == ENGINE_STATUS_STOPPED
+					&&
+				this->getEngine(1)->getStatus() == ENGINE_STATUS_STOPPED
+					&&
+				this->getEngine(2)->getStatus() == ENGINE_STATUS_STOPPED
+					&&
+				this->getEngine(3)->getStatus() == ENGINE_STATUS_STOPPED
+					&&
+				this->getEnginesReady()
+					&&
+				this->getBalancerReady()
+					
 			);
 		
 		}
@@ -376,8 +354,6 @@ class ACopter
 		}
 
 		Engine*						engines[enginesNumber];
-
-		CopterStatus				status;				
 
 		ABalancer*					balancer;
 

@@ -1,10 +1,8 @@
 #include <SoftwareSerial.h>
-#include <Arduino.h>
 #include <Wire.h>
 #include <Servo.h>
 #include "Copter.h"
 #include "MPU6050_API.h"
-
 SoftwareSerial          bluetooth(10,11);
 QuadroCopter            copter;
 
@@ -25,7 +23,6 @@ void setup()
 
 void loop()
 {
-
   if ( accelgyroUpdate() )
   {
     //  Update YPTR data
@@ -44,18 +41,18 @@ void loop()
     Serial.println(copter.getEngine(3)->getSpeed());
 	
   }
-  
+
   //  If a command was recieved over bluetooth
   if ( bluetooth.available() )
   {
     //  Send it to copter
     switch (bluetooth.read())
     {
-      case COPTER_STOP:		copter.cmdStop(); break;
-      case COPTER_ARM:		copter.cmdArm(); break;
-      case COPTER_RAISE:	copter.cmdRaise(); break;
-      case COPTER_DESCEND:	copter.cmdDescend(); break;
+      case COPTER_STOP:		    copter.cmdStop(); break;
+      case COPTER_LAUNCH:	    copter.cmdLaunch(); break;
+      case COPTER_RAISE:	    copter.cmdRaise(); break;
+      case COPTER_DESCEND:          copter.cmdDescend(); break;
+      case BALANCER_TOGGLE_ENABLED: copter.cmdBalancerToggleEnabled(); break;
     }
   }
-
 }

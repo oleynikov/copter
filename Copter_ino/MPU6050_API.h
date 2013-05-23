@@ -1,5 +1,5 @@
-
-
+#ifndef MPU6050API
+#define MPU6050API
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
@@ -106,7 +106,9 @@ void			dmpDataReady ( void )
 
 void			accelgyroSetup( void )
 {
-  
+      // configure LED for output
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN,LOW);
    // join I2C bus (I2Cdev library doesn't do this automatically)
     Wire.begin();
 
@@ -155,6 +157,7 @@ void			accelgyroSetup( void )
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
         Serial.println(F("DMP ready! Waiting for first interrupt..."));
         dmpReady = true;
+        digitalWrite(LED_PIN,HIGH);
 
         // get expected DMP packet size for later comparison
         packetSize = accelgyro.dmpGetFIFOPacketSize();
@@ -168,8 +171,7 @@ void			accelgyroSetup( void )
         Serial.println(F(")"));
     }
 
-    // configure LED for output
-    pinMode(LED_PIN, OUTPUT);
+
 }
 
 
@@ -231,9 +233,7 @@ bool			accelgyroUpdate ( void )
         // (this lets us immediately read more without waiting for an interrupt)
         fifoCount -= packetSize;
 		
-        // blink LED to indicate activity
-        blinkState = !blinkState;
-        digitalWrite(LED_PIN, blinkState);
+     
 		
 		return true;
 
@@ -279,3 +279,5 @@ float*			accelgyroGetYawPitchRoll ( void )
 	return ypr;
   
 }
+
+#endif
