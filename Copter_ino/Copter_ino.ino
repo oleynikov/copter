@@ -17,7 +17,7 @@ void setup()
 
 	//  Bind pins to copter engines
 	copter.createEngines(3,5,6,9);
-	copter.createBalancer(ypr);
+	copter.createBalancer(ypr,copterAccel);
 
 }
 
@@ -25,8 +25,9 @@ void loop()
 {
 	if ( accelgyroUpdate() )
 	{
-		//  Update YPTR data
+		//  Update telemetry data
 		accelgyroGetYawPitchRoll();
+		accelgyroGetAceleration();
 
 		//  Update copter's telemetry
 		copter.getBalancer()->updateTelemetry();

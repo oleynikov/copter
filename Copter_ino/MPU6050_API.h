@@ -80,7 +80,7 @@ VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measure
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-
+float copterAccel[3];
 // indicates whether MPU interrupt pin has gone high
 volatile bool mpuInterrupt = false;     
 
@@ -260,6 +260,10 @@ VectorInt16*	accelgyroGetAceleration ( void )
 	accelgyro.dmpGetLinearAccel(&aaReal, &aa, &gravity);
 	accelgyro.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
   
+	copterAccel[0] = aaWorld.x;
+	copterAccel[1] = aaWorld.y;
+	copterAccel[2] = aaWorld.z;
+	
 	return &aaWorld;
 
 }

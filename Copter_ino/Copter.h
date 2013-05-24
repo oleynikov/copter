@@ -1,8 +1,8 @@
 #pragma once
 
 #include <math.h>
-#include <Servo.h>
-#include <Arduino.h>
+//@#include <Servo.h>
+//@#include <Arduino.h>
 
 
 
@@ -24,13 +24,15 @@ class Engine
 		
 		int							getPin ( void ) const;
 
-		int							getSpeed ( void ) const;
+		float						getSpeed ( void ) const;
 		
 		EngineStatus				getStatus ( void ) const;
 		
 		bool						arm ( void );
 		
 		void						stop ( void );
+
+		bool						accelerate ( float delta );
 		
 		bool						accelerate ( void );
 
@@ -46,17 +48,18 @@ class Engine
 	
 	protected:
 
-		bool						setSpeed ( int speed );
 		
-		bool						getSpeedValid ( int speed ) const;
+		bool						getSpeedValid ( float speed ) const;
+		
+		bool						setSpeed ( float speed );
 
 		int							pin;
 		
-		int							speed;
+		float						speed;
 		
 		EngineStatus				status;
 		
-		Servo						servo;
+		//@Servo						servo;
 		
 };
 
@@ -65,7 +68,7 @@ class ABalancer
 
 	public:
 	
-									ABalancer ( float* yawPitchRoll );
+									ABalancer ( float* yawPitchRoll , float* acceleration );
 	
 		virtual						~ABalancer ( void );
 		
@@ -76,6 +79,8 @@ class ABalancer
 		bool						getBalanced ( void );
 		
 		bool						getSteady ( void );
+
+		float						getYprBalancingSpeed ( float deflectionAngle ) const;
 
 		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
 		
@@ -112,6 +117,8 @@ class ABalancer
 		float*						yawPitchRoll;
 		
 		float*						acceleration;
+
+		float						yprBalancingCoefficient;
 
 };
 
@@ -197,7 +204,7 @@ class ACopter
 				
 				}
 				
-				delay(3000);
+				//@delay(3000);
 				
 				this->cmdRaise();
 			}
@@ -280,6 +287,10 @@ class ACopter
 		
 			return
 			(
+				this->getEnginesReady()
+					&&
+				this->getBalancerReady()
+					&&
 				this->getEngine(0)->getStatus() == ENGINE_STATUS_STOPPED
 					&&
 				this->getEngine(1)->getStatus() == ENGINE_STATUS_STOPPED
@@ -287,11 +298,6 @@ class ACopter
 				this->getEngine(2)->getStatus() == ENGINE_STATUS_STOPPED
 					&&
 				this->getEngine(3)->getStatus() == ENGINE_STATUS_STOPPED
-					&&
-				this->getEnginesReady()
-					&&
-				this->getBalancerReady()
-					
 			);
 		
 		}
@@ -331,7 +337,7 @@ class QuadroBalancer
 
 	public:
 	
-									QuadroBalancer ( QuadroCopter* copter , float* yawPitchRoll );
+									QuadroBalancer ( QuadroCopter* copter , float* yawPitchRoll , float* acceleration );
 	
 		bool						getYawBalanced ( void ) const;
 		
@@ -366,6 +372,6 @@ class QuadroCopter
 	
 		void						createEngines ( const int pin0 , const int pin1, const int pin2, const int pin3 );
 		
-		void						createBalancer ( float* yawPitchRoll );
+		void						createBalancer ( float* yawPitchRoll , float* acceleration );
 		
 };
