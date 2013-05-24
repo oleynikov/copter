@@ -42,9 +42,9 @@ class Engine
 		
 		const static int			SPEED_MAX = 50;
 		
-		const static int			SPEED_DELTA = 5;
+		const static int			SPEED_DELTA = 1;
 	
-	private:
+	protected:
 
 		bool						setSpeed ( int speed );
 		
@@ -71,15 +71,15 @@ class ABalancer
 		
 		void						toggleEnabled ( void );
 
-		void						update ( void );
+		void						updateTelemetry ( void );
+
+		bool						getBalanced ( void );
+		
+		bool						getSteady ( void );
 
 		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
 		
 		const static float			ACCELERATION_ACCURACY = 0.5;
-	
-		bool						getBalanced ( void );
-		
-		bool						getSteady ( void );
 		
 	protected:
 
@@ -199,13 +199,7 @@ class ACopter
 				
 				delay(3000);
 				
-				for ( int engineKey = 0 ; engineKey < enginesNumber ; engineKey++ )
-				{
-				
-					this->engines[engineKey]->accelerate();
-				
-				}
-				
+				this->cmdRaise();
 			}
 		
 		}
@@ -234,13 +228,6 @@ class ACopter
 		
 		}
 		
-		void						cmdBalancerToggleEnabled ( void )
-		{
-		
-			this->balancer->toggleEnabled();
-		
-		}
-		
 		Engine*						getEngine ( int engineId ) const
 		{
 		
@@ -255,13 +242,13 @@ class ACopter
 		
 		}
 		
-		void						updateTelemetry ( void )
+		ABalancer*					getBalancer ( void ) const
 		{
 		
-			this->balancer->update();
+			return this->balancer;
 		
 		}
-
+		
 		bool						getEnginesReady ( void ) const
 		{
 	
@@ -309,38 +296,15 @@ class ACopter
 		
 		}
 		
-		bool						getBalanced ( void ) const
-		{
-		
-			if ( this->balancer )
-			{
-			
-				return this->balancer->getBalanced();
-				
-			}
-			
-			return false;
-		
-		}
-		
 	protected:
 	
-		void						addEngine ( int engineId , int enginePin )
+		void						createEngine ( int engineId , int enginePin )
 		{
 			
 			this->engines[engineId] = new Engine(enginePin);
 		
 		}
 	
-		void						addBalancer ( ABalancer* balancer )
-		{
-		
-			this->balancer = balancer;
-		
-		}
-		
-	private:
-		
 		bool						getEngineIdValid ( int engineId ) const
 		{
 		
@@ -387,7 +351,7 @@ class QuadroBalancer
 
 		void						stopZ ( void );
 		
-	private:
+	protected:
 	
 		QuadroCopter*				copter;
 		

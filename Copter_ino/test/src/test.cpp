@@ -76,7 +76,7 @@ bool test_QuadroCopterConstructor_002 ( void )
 			&&
 		copter.getReadyToLaunch() == 1
 			&&
-		copter.getBalanced() == 1
+		copter.getBalancer()->getBalanced() == 1
 	);
 
 }
@@ -89,7 +89,7 @@ bool test_QuadroCopterSpeedChange_001 ( void )
 	QuadroCopter copter;
 	copter.createEngines(5,7,9,11);
 	copter.createBalancer(ypr);
-	copter.cmdArm();
+	copter.cmdLaunch();
 	copter.cmdRaise();
 	copter.cmdRaise();
 	copter.cmdRaise();
@@ -112,7 +112,7 @@ bool test_QuadroCopterSpeedChange_001 ( void )
 			&&
 		copter.getReadyToLaunch() == 1
 			&&
-		copter.getBalanced() == 0
+		copter.getBalancer()->getBalanced() == 0
 			&&
 		copter.getEngine(0)->getSpeed() == Engine::SPEED_MIN + Engine::SPEED_DELTA * 4
 			&&
@@ -133,7 +133,7 @@ bool test_QuadroCopterSpeedChange_002 ( void )
 	QuadroCopter copter;
 	copter.createEngines(5,7,9,11);
 	copter.createBalancer(ypr);
-	copter.cmdArm();
+	copter.cmdLaunch();
 	copter.cmdRaise();
 	copter.cmdRaise();
 	copter.cmdDescend();
@@ -158,7 +158,7 @@ bool test_QuadroCopterSpeedChange_002 ( void )
 			&&
 		copter.getReadyToLaunch() == 1
 			&&
-		copter.getBalanced() == 0
+		copter.getBalancer()->getBalanced() == 0
 			&&
 		copter.getEngine(0)->getSpeed() == Engine::SPEED_MIN
 			&&
