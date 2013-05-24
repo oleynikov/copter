@@ -3,6 +3,7 @@
 #include <Servo.h>
 #include "Copter.h"
 #include "MPU6050_API.h"
+
 SoftwareSerial		bluetooth(10,11);
 QuadroCopter        copter;
 
@@ -31,16 +32,22 @@ void loop()
 
 		//  Update copter's telemetry
 		copter.getBalancer()->updateTelemetry();
-
+/*
 		//  Output YRP
 		Serial.print(ypr[1]);								Serial.print("\t");
 		Serial.print(ypr[2]);								Serial.print("\t\t\t");
-		
+
+		//  Output acceleration
+		Serial.print(aaWorld.x);Serial.print("\t");
+		Serial.print(aaWorld.y);Serial.print("\t");
+		Serial.print(aaWorld.z);Serial.print("\t\t\t");
+
 		//	Output current speeds of engines
 		Serial.print(copter.getEngine(0)->getSpeed());		Serial.print('\t');
 		Serial.print(copter.getEngine(1)->getSpeed());		Serial.print('\t');
 		Serial.print(copter.getEngine(2)->getSpeed());		Serial.print('\t');
 		Serial.println(copter.getEngine(3)->getSpeed());
+*/
 	}
 
 	//  If a command was recieved over bluetooth
@@ -56,4 +63,5 @@ void loop()
 		  case BALANCER_TOGGLE_ENABLED:		copter.getBalancer()->toggleEnabled(); break;
 		}
 	}
+
 }

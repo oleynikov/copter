@@ -12,7 +12,7 @@
 						status	( ENGINE_STATUS_STOPPED )
 {
 
-	//@this->servo.attach(pin);
+	this->servo.attach(pin);
 	this->setSpeed(0);
 	
 }
@@ -133,12 +133,12 @@ bool			Engine::accelerate ( float delta )
 bool			Engine::setSpeed ( float speed )
 {
 
-	int speedRounded = roundf(speed);
+	int speedRounded = speed + 0.5;
 
 	if ( this->getSpeedValid(speedRounded) )
 	{
 	
-		//@this->servo.write(speed);
+		this->servo.write(speed);
 		this->speed = speedRounded;
 		
 		return true;

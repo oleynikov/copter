@@ -1,8 +1,8 @@
 #pragma once
 
 #include <math.h>
-//@#include <Servo.h>
-//@#include <Arduino.h>
+#include <Servo.h>
+#include <Arduino.h>
 
 
 
@@ -59,7 +59,7 @@ class Engine
 		
 		EngineStatus				status;
 		
-		//@Servo						servo;
+		Servo						servo;
 		
 };
 
@@ -204,7 +204,7 @@ class ACopter
 				
 				}
 				
-				//@delay(3000);
+				delay(3000);
 				
 				this->cmdRaise();
 			}
