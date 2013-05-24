@@ -263,9 +263,11 @@ bool			ABalancer::getRollBalanced ( void ) const
 
 float			ABalancer::getYprBalancingSpeed ( float deflectionAngle ) const
 {
-
+/*
 	float foo = deflectionAngle * this->yprBalancingCoefficient;
 	return foo * foo;
+*/
+	return sqrt(10*deflectionAngle);
 
 }
 
