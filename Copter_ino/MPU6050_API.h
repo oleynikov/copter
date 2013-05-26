@@ -80,7 +80,7 @@ VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measure
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-float copterAccel[3];
+
 // indicates whether MPU interrupt pin has gone high
 volatile bool mpuInterrupt = false;     
 
@@ -93,7 +93,7 @@ MPU6050 accelgyro;
 // ================================================================
 
 
-void			dmpDataReady ( void )
+void                    dmpDataReady ( void )
 {
     mpuInterrupt = true;
 }
@@ -104,7 +104,7 @@ void			dmpDataReady ( void )
 // ===                      INITIAL SETUP                       ===
 // ================================================================
 
-void			accelgyroSetup( void )
+void                    accelgyroSetup( void )
 {
       // configure LED for output
     pinMode(LED_PIN, OUTPUT);
@@ -180,7 +180,7 @@ void			accelgyroSetup( void )
 // ===                    MAIN PROGRAM LOOP                     ===
 // ================================================================
 
-bool			accelgyroUpdate ( void )
+bool                    accelgyroUpdate ( void )
 {
 
   // if programming failed, don't try to do anything
@@ -191,7 +191,7 @@ bool			accelgyroUpdate ( void )
 
     // wait for MPU interrupt or extra packet(s) available
     while (!mpuInterrupt && fifoCount < packetSize)
-	{
+        {
         // other program behavior stuff here
         // .
         // .
@@ -213,16 +213,16 @@ bool			accelgyroUpdate ( void )
 
     // check for overflow (this should never happen unless our code is too inefficient)
     if ((mpuIntStatus & 0x10) || fifoCount == 1024)
-	{
+        {
         // reset so we can continue cleanly
         accelgyro.resetFIFO();
         Serial.println(F("FIFO overflow!"));
-		
-		return false;
+                
+                return false;
     }
     // otherwise, check for DMP data ready interrupt (this should happen frequently)
-	else if (mpuIntStatus & 0x02)
-	{
+        else if (mpuIntStatus & 0x02)
+        {
         // wait for correct available data length, should be a VERY short wait
         while (fifoCount < packetSize) fifoCount = accelgyro.getFIFOCount();
 
@@ -232,15 +232,15 @@ bool			accelgyroUpdate ( void )
         // track FIFO count here in case there is > 1 packet available
         // (this lets us immediately read more without waiting for an interrupt)
         fifoCount -= packetSize;
-		
+                
      
-		
-		return true;
+                
+                return true;
 
     }
-	
-	return false;
-	
+        
+        return false;
+        
 }
 
 
@@ -249,38 +249,34 @@ bool			accelgyroUpdate ( void )
 // ===                    INTERFACE FUNCTIONS                   ===
 // ================================================================
 
-VectorInt16*	accelgyroGetAceleration ( void )
+VectorInt16*    accelgyroGetAceleration ( void )
 {
 
-	// display initial world-frame acceleration, adjusted to remove gravity
-	// and rotated based on known orientation from quaternion
-	accelgyro.dmpGetQuaternion(&q, fifoBuffer);
-	accelgyro.dmpGetAccel(&aa, fifoBuffer);
-	accelgyro.dmpGetGravity(&gravity, &q);
-	accelgyro.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-	accelgyro.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+        // display initial world-frame acceleration, adjusted to remove gravity
+        // and rotated based on known orientation from quaternion
+        accelgyro.dmpGetQuaternion(&q, fifoBuffer);
+        accelgyro.dmpGetAccel(&aa, fifoBuffer);
+        accelgyro.dmpGetGravity(&gravity, &q);
+        accelgyro.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+        accelgyro.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
   
-	copterAccel[0] = aaWorld.x;
-	copterAccel[1] = aaWorld.y;
-	copterAccel[2] = aaWorld.z;
-	
-	return &aaWorld;
+        return &aaWorld;
 
 }
 
-float*			accelgyroGetYawPitchRoll ( void )
+float*                  accelgyroGetYawPitchRoll ( void )
 {
 
-	// display Euler angles in degrees
-	accelgyro.dmpGetQuaternion(&q, fifoBuffer);
-	accelgyro.dmpGetGravity(&gravity, &q);
-	accelgyro.dmpGetYawPitchRoll(ypr, &q, &gravity);
-	
-	ypr[0] *= 180/M_PI;
-	ypr[1] *= 180/M_PI;
-	ypr[2] *= 180/M_PI;
+        // display Euler angles in degrees
+        accelgyro.dmpGetQuaternion(&q, fifoBuffer);
+        accelgyro.dmpGetGravity(&gravity, &q);
+        accelgyro.dmpGetYawPitchRoll(ypr, &q, &gravity);
+        
+        ypr[0] *= 180/M_PI;
+        ypr[1] *= 180/M_PI;
+        ypr[2] *= 180/M_PI;
   
-	return ypr;
+        return ypr;
   
 }
 

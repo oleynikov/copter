@@ -24,7 +24,7 @@ int				Engine::getPin ( void ) const
 
 }
 
-float			Engine::getSpeed ( void ) const
+int				Engine::getSpeed ( void ) const
 {
 
 	return this->speed;
@@ -53,10 +53,26 @@ void			Engine::stop ( void )
 
 }
 
+bool			Engine::slow ( void )
+{
+
+	bool success = this->setSpeed(this->speed-Engine::SPEED_DELTA);
+	
+	if ( ! success )
+	{
+	
+		this->setSpeed(SPEED_MIN);
+	
+	}
+
+	return success;
+
+}
+
 bool			Engine::accelerate ( void )
 {
 
-	int speedNew;
+	float speedNew;
 
 	if ( this->speed == Engine::SPEED_ARM )
 	{
@@ -86,23 +102,7 @@ bool			Engine::accelerate ( void )
 
 }
 
-bool			Engine::slow ( void )
-{
-
-	bool success = this->setSpeed(this->speed-Engine::SPEED_DELTA);
-	
-	if ( ! success )
-	{
-	
-		this->setSpeed(SPEED_MIN);
-	
-	}
-
-	return success;
-
-}
-
-bool			Engine::accelerate ( float delta )
+bool			Engine::accelerate ( int delta )
 {
 
 	bool success = this->setSpeed(this->speed+delta);
@@ -130,16 +130,14 @@ bool			Engine::accelerate ( float delta )
 
 }
 
-bool			Engine::setSpeed ( float speed )
+bool			Engine::setSpeed ( int speed )
 {
 
-	int speedRounded = speed + 0.5;
-
-	if ( this->getSpeedValid(speedRounded) )
+	if ( this->getSpeedValid(speed) )
 	{
 	
 		this->servo.write(speed);
-		this->speed = speedRounded;
+		this->speed = speed;
 		
 		return true;
 	
@@ -149,13 +147,13 @@ bool			Engine::setSpeed ( float speed )
 
 }
 
-bool			Engine::getSpeedValid ( float speed ) const
+bool			Engine::getSpeedValid ( int speed ) const
 {
 
 	bool stopEngine = speed == 0;
 	bool armStoppedEngine = this->speed == 0 && speed == SPEED_ARM;
 	bool launchArmedEngine = this->speed == SPEED_ARM && speed == SPEED_ARM + SPEED_DELTA;
-	bool changeEngineSpeed = speed >= SPEED_MIN && speed <= Engine::SPEED_MAX;
+	bool changeRunningEngineSpeed = this->status == ENGINE_STATUS_RUNNING && speed >= SPEED_MIN && speed <= Engine::SPEED_MAX;
 	
 	return
 	(
@@ -165,7 +163,7 @@ bool			Engine::getSpeedValid ( float speed ) const
 			||
 		launchArmedEngine
 			||
-		changeEngineSpeed
+		changeRunningEngineSpeed
 	);
 
 }
@@ -263,11 +261,8 @@ bool			ABalancer::getRollBalanced ( void ) const
 
 float			ABalancer::getYprBalancingSpeed ( float deflectionAngle ) const
 {
-/*
-	float foo = deflectionAngle * this->yprBalancingCoefficient;
-	return foo * foo;
-*/
-	return sqrt(10*deflectionAngle);
+
+	return sqrt(deflectionAngle);
 
 }
 
@@ -321,7 +316,7 @@ void			QuadroBalancer::balancePitch ( void )
 
 	//	Try to slow the engine which is higher
 	int engineHigh = ( this->yawPitchRoll[1] < 0 ) ? 3 : 1;
-	this->copter->getEngine(engineHigh)->accelerate(engineSpeedDelta*-1);
+        if ( this->copter->getEngine(engineHigh)->accelerate(engineSpeedDelta*-1) ) ;
 
 	//	Try to accelerate the engine which is lower
 	int engineLow = ( this->yawPitchRoll[1] < 0 ) ? 1 : 3;
@@ -331,17 +326,21 @@ void			QuadroBalancer::balancePitch ( void )
 
 void			QuadroBalancer::balanceRoll ( void )
 {
-
+  this->copter->getEngine(0)->accelerate(this->yawPitchRoll[2]);
+  
+/*
 	float rollAbs = fabs(this->yawPitchRoll[2]);
 	float engineSpeedDelta = this->getYprBalancingSpeed(rollAbs);
 
   	//	Try to slow the engine which is higher
 	int engineHigh = ( this->yawPitchRoll[2] < 0 ) ? 2 : 0;
-	this->copter->getEngine(engineHigh)->accelerate(engineSpeedDelta*-1);
+	if ( this->copter->getEngine(engineHigh)->accelerate(engineSpeedDelta*-1) ) ;
 
 	//	Try to accelerate the engine which is lower
 	int engineLow = ( this->yawPitchRoll[2] < 0 ) ? 0 : 2;
 	this->copter->getEngine(engineLow)->accelerate(engineSpeedDelta);
+*/
+
 
 }
 

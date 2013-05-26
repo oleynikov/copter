@@ -24,7 +24,7 @@ class Engine
 		
 		int							getPin ( void ) const;
 
-		float						getSpeed ( void ) const;
+		int							getSpeed ( void ) const;
 		
 		EngineStatus				getStatus ( void ) const;
 		
@@ -32,30 +32,29 @@ class Engine
 		
 		void						stop ( void );
 
-		bool						accelerate ( float delta );
-		
+		bool						slow ( void );
+
 		bool						accelerate ( void );
 
-		bool						slow ( void );
+		bool						accelerate ( int delta );
 		
-		const static int			SPEED_ARM = 20;
+		const static int			SPEED_ARM = 1000;
 		
-		const static int			SPEED_MIN = 35;
+		const static int			SPEED_MIN = 1130;
 		
-		const static int			SPEED_MAX = 50;
+		const static int			SPEED_MAX = 2000;
 		
-		const static int			SPEED_DELTA = 1;
+		const static int			SPEED_DELTA = 10;
+		
+		bool						setSpeed ( int speed );
 	
 	protected:
 
-		
-		bool						getSpeedValid ( float speed ) const;
-		
-		bool						setSpeed ( float speed );
+		bool						getSpeedValid ( int speed ) const;
 
 		int							pin;
 		
-		float						speed;
+		int							speed;
 		
 		EngineStatus				status;
 		
@@ -82,9 +81,9 @@ class ABalancer
 
 		float						getYprBalancingSpeed ( float deflectionAngle ) const;
 
-		const static float			YAW_PITCH_ROLL_ACCURACY = 0.5;
+		const static float			YAW_PITCH_ROLL_ACCURACY = 0;
 		
-		const static float			ACCELERATION_ACCURACY = 0.5;
+		const static float			ACCELERATION_ACCURACY = 0;
 		
 	protected:
 
@@ -133,7 +132,13 @@ enum CopterCommand
   
 	COPTER_DESCEND,
 	
-	BALANCER_TOGGLE_ENABLED
+	BALANCER_TOGGLE_ENABLED,
+
+      PID_P_SHIFT,
+
+      PID_I_SHIFT,
+
+      PID_D_SHIFT
   
 };
 
