@@ -12,13 +12,13 @@ bool				rollPidOn			= false;
 double				rollPidP			= 1;
 double				rollPidI			= 0.05;
 double				rollPidD			= 0.25;
-double				rollPidSetpoint		= 0;
+double				rollPidSetpoint		        = 0;
 double                          rollPidInput;
 double				rollPidOut0;
 double				rollPidOut2;
 
-PID					rollPID0 ( &rollPidInput , &rollPidOut0, &rollPidSetpoint , rollPidP , rollPidI , rollPidD , DIRECT );
-PID					rollPID2 ( &rollPidInput , &rollPidOut2, &rollPidSetpoint , rollPidP , rollPidI , rollPidD , REVERSE );
+PID				rollPID0 ( &rollPidInput , &rollPidOut0, &rollPidSetpoint , rollPidP , rollPidI , rollPidD , DIRECT );
+PID				rollPID2 ( &rollPidInput , &rollPidOut2, &rollPidSetpoint , rollPidP , rollPidI , rollPidD , REVERSE );
 
 void setup()
 {
@@ -35,11 +35,14 @@ void setup()
 
 	//	Configure PIDs
 	rollPID0.SetMode(AUTOMATIC);
-	rollPID0.SetOutputLimits(1130,2000);
-	rollPID0.SetSampleTime(100);
+	rollPID0.SetOutputLimits(-50,50);
+	rollPID0.SetSampleTime(25);
 	rollPID2.SetMode(AUTOMATIC);
-	rollPID2.SetOutputLimits(1130,1300);
-	rollPID2.SetSampleTime(100);
+	rollPID2.SetOutputLimits(-50,50);
+	rollPID2.SetSampleTime(25);
+
+        copter.getEngine(0)->setSpeed(1250);
+        copter.getEngine(2)->setSpeed(1250);
 
 }
 
@@ -53,23 +56,19 @@ void loop()
 
 		if ( rollPidOn )
 		{
-            rollPidInput = ypr[2];
-            rollPID0.Compute();
-            rollPID2.Compute();
-                
-			copter.getEngine(0)->setSpeed(rollPidOut0);
-            copter.getEngine(2)->setSpeed(rollPidOut2);
+                    rollPidInput = ypr[2];
+                    rollPID0.Compute();
+                    rollPID2.Compute();
+                    
+                    copter.getEngine(0)->accelerate(rollPidOut0);
+                    copter.getEngine(2)->accelerate(rollPidOut2);
 		}
 		Serial.print(rollPidP);Serial.print("\t");
 		Serial.print(rollPidI);Serial.print("\t");
-		Serial.println(rollPidD);
-/*
+		Serial.print(rollPidD);Serial.print("\t\t");
 
-		Serial.print(ypr[2]);Serial.print("\t\t");
-		
-		Serial.print(copter.getEngine(0)->getSpeed());Serial.print('\t');
-		Serial.println(copter.getEngine(2)->getSpeed());
-*/
+		Serial.println(ypr[2]);
+
 	}
 
 	//  If a command was recieved over bluetooth
@@ -81,17 +80,18 @@ void loop()
 			case COPTER_STOP:					copter.cmdStop(); break;
 			case COPTER_LAUNCH:					copter.cmdLaunch();rollPidOn=true; break;
 			case COPTER_RAISE:					copter.cmdRaise(); break;
-			case COPTER_DESCEND:				copter.cmdDescend(); break;
-			case BALANCER_TOGGLE_ENABLED:		copter.getBalancer()->toggleEnabled(); break;
+			case COPTER_DESCEND:				        copter.cmdDescend(); break;
+			case BALANCER_TOGGLE_ENABLED:		                copter.getBalancer()->toggleEnabled(); break;
 			case PID_P_SHIFT: 
 			{
 				if ( bluetooth.read() == COPTER_STOP )
-					rollPidP --;
+					rollPidP -= 0.05;
 				else
-					rollPidP ++;
+					rollPidP += 0.05;
 
 				rollPID0.SetTunings(rollPidP,rollPidI,rollPidD);
-				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD); 
+				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD);
+                                break;
 			}
 			case PID_I_SHIFT: 
 			{
@@ -101,7 +101,8 @@ void loop()
 					rollPidI += 0.05;
 
 				rollPID0.SetTunings(rollPidP,rollPidI,rollPidD);
-				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD); 
+				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD);
+                                break;
 			}
 			case PID_D_SHIFT: 
 			{
@@ -111,7 +112,8 @@ void loop()
 					rollPidD += 0.05;
 
 				rollPID0.SetTunings(rollPidP,rollPidI,rollPidD);
-				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD); 
+				rollPID2.SetTunings(rollPidP,rollPidI,rollPidD);
+                                break;
 			}
 		}
 	}
