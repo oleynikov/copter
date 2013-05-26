@@ -9,9 +9,9 @@ SoftwareSerial		bluetooth ( 10 , 11 );
 QuadroCopter        copter;
 
 bool				rollPidOn			= false;
-double				rollPidP			= 1;
-double				rollPidI			= 0.05;
-double				rollPidD			= 0.25;
+double				rollPidP			= 2.3;
+double				rollPidI			= 0.3;
+double				rollPidD			= 1.35;
 double				rollPidSetpoint		        = 0;
 double                          rollPidInput;
 double				rollPidOut0;
@@ -35,14 +35,12 @@ void setup()
 
 	//	Configure PIDs
 	rollPID0.SetMode(AUTOMATIC);
-	rollPID0.SetOutputLimits(-50,50);
-	rollPID0.SetSampleTime(25);
+	rollPID0.SetOutputLimits(1130,1300);
+	rollPID0.SetSampleTime(10);
 	rollPID2.SetMode(AUTOMATIC);
-	rollPID2.SetOutputLimits(-50,50);
-	rollPID2.SetSampleTime(25);
+	rollPID2.SetOutputLimits(1130,1300);
+	rollPID2.SetSampleTime(10);
 
-        copter.getEngine(0)->setSpeed(1250);
-        copter.getEngine(2)->setSpeed(1250);
 
 }
 
@@ -60,8 +58,8 @@ void loop()
                     rollPID0.Compute();
                     rollPID2.Compute();
                     
-                    copter.getEngine(0)->accelerate(rollPidOut0);
-                    copter.getEngine(2)->accelerate(rollPidOut2);
+                    copter.getEngine(0)->setSpeed(rollPidOut0);
+                    copter.getEngine(2)->setSpeed(rollPidOut2);
 		}
 		Serial.print(rollPidP);Serial.print("\t");
 		Serial.print(rollPidI);Serial.print("\t");
