@@ -56,8 +56,8 @@ void loop()
 			rollPID0.Compute();
 			rollPID2.Compute();
 
-			copter.getEngine(0)->setSpeed(1250+rollPidOut0);
-			copter.getEngine(2)->setSpeed(1250+rollPidOut2);
+			copter.getEngine(0)->setSpeed(1300+rollPidOut0);
+			copter.getEngine(2)->setSpeed(1300+rollPidOut2);
 		}
 
 		Serial.print(rollPidP);Serial.print("\t");
